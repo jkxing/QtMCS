@@ -28,11 +28,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    configdialog.cpp
+    configdialog.cpp \
+    pipe.cpp
 
 HEADERS += \
         mainwindow.h \
-    configdialog.h
+    configdialog.h \
+    pipe.h
 
 FORMS += \
         mainwindow.ui \

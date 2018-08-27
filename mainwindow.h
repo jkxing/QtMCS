@@ -2,7 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include <QGraphicsScene>
+#include <QGraphicsRectItem>
+#include <QPainter>
+#include <pipe.h>
 namespace Ui {
 class MainWindow;
 }
@@ -17,12 +20,17 @@ public:
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void paintEvent(QPaintEvent *e);
 
 private slots:
     void on_actionConfig_triggered();
     void resize(int,int);
 private:
     Ui::MainWindow *ui;
+    QGraphicsScene *scene;
+    QGraphicsEllipseItem *ellipse;
+    QGraphicsRectItem *rectangle;
+    Pipe* pipe[3][8][8];
 };
 
 #endif // MAINWINDOW_H
