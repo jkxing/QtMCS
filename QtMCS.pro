@@ -29,12 +29,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     configdialog.cpp \
-    pipe.cpp
+    pipe.cpp \
+    caluconspeed.cpp
 
 HEADERS += \
         mainwindow.h \
     configdialog.h \
-    pipe.h
+    pipe.h \
+    caluconspeed.h
 
 FORMS += \
         mainwindow.ui \

@@ -1,14 +1,14 @@
 #include "pipe.h"
 
-Pipe::Pipe(double x,double y,double w,double h,bool c,QWidget* parent):x(x),y(y),w(w),h(h)
+Pipe::Pipe(double x,double y,double w,double h,int c,QWidget* parent):x(x),y(y),w(w),h(h)
 {
-    if(c)
+    if(c==-1)
     {
         inUse = rand()%10?1:0;
     }
     else
     {
-        inUse = 1;
+        inUse = c;
     }
     //setFlag(ItemIsMovable);
 }
@@ -38,4 +38,8 @@ void Pipe::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
     inUse ^= 1;
     update();
     QGraphicsItem::mouseDoubleClickEvent(event);
+}
+
+bool Pipe::getState(){
+    return inUse;
 }

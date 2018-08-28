@@ -13,14 +13,15 @@ class Pipe: public QGraphicsItem
     bool inUse;
     double x,y,w,h;
 public:
-    Pipe(double x,double y,double w,double h,bool c,QWidget* parent=0);
+    Pipe(double x,double y,double w,double h,int c,QWidget* parent=0);
 
     QRectF boundingRect() const;
 
     void paint(QPainter *painter,const QStyleOptionGraphicsItem *option
 , QWidget *widget);
+
+    bool getState();
 protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
-
 };
 #endif // PIPE_H

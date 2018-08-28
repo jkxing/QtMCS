@@ -8,10 +8,9 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
     ui->setupUi(this);
     for(int i=5;i<9;i++)
     {
-        ui->height->addItem(QString::number(i));
-        ui->weight->addItem(QString::number(i));
+        ui->length->addItem(QString::number(i));
     }
-    on_weight_currentTextChanged("5");
+    on_length_currentTextChanged("5");
 }
 
 ConfigDialog::~ConfigDialog()
@@ -21,32 +20,38 @@ ConfigDialog::~ConfigDialog()
 
 
 
-void ConfigDialog::on_weight_currentTextChanged(const QString &arg1)
+void ConfigDialog::on_length_currentTextChanged(const QString &arg1)
 {
     int num=arg1.toInt();
-    ui->input1->clear();
-    ui->input2->clear();
-    ui->input3->clear();
-    ui->output1->clear();
-    ui->output1->clear();
-    for(int i=1;i<=num;i++)
+    ui->Input1->clear();
+    ui->Input2->clear();
+    ui->Output1->clear();
+    ui->Output2->clear();
+    ui->Output3->clear();
+    for(int i=0;i<num;i++)
     {
-        ui->input1->addItem(QString::number(i));
-        ui->input2->addItem(QString::number(i));
-        ui->input3->addItem(QString::number(i));
-        ui->output1->addItem(QString::number(i));
-        ui->output2->addItem(QString::number(i));
+        ui->Input1->addItem(QString::number(i));
+        ui->Input2->addItem(QString::number(i));
+        ui->Output1->addItem(QString::number(i));
+        ui->Output2->addItem(QString::number(i));
+        ui->Output3->addItem(QString::number(i));
     }
 }
 
 void ConfigDialog::work(){
     if(this->exec()==QDialog::Accepted)
     {
-        emit finish(ui->height->currentText().toInt(),ui->weight->currentText().toInt());
+        emit finish(ui->length->currentText().toInt(),
+                    ui->Input1->currentText().toInt(),
+                    ui->Input2->currentText().toInt(),
+                    ui->Output1->currentText().toInt(),
+                    ui->Output2->currentText().toInt(),
+                    ui->Output3->currentText().toInt()
+                    );
     }
     else
     {
-        emit finish(0,0);
+        emit finish(0,0,0,0,0,0);
         return;
     }
 }

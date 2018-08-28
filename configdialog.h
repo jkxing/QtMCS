@@ -15,10 +15,10 @@ public:
     ~ConfigDialog();
     void work();
 private slots:
-    void on_weight_currentTextChanged(const QString &arg1);
+    void on_length_currentTextChanged(const QString &arg1);
 
 signals:
-    void finish(int,int);
+    void finish(int,int,int,int,int,int);
 private:
     Ui::ConfigDialog *ui;
 };
