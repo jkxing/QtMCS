@@ -41,6 +41,7 @@ void MainWindow::on_actionConfig_triggered()
 }
 void MainWindow::resize(int len,int in1,int in2,int out1,int out2,int out3)
 {
+    setFixedSize(len*150+150,len*150+150);
     scene->clear();
     length=len;
     input[0]=in1;
@@ -48,7 +49,6 @@ void MainWindow::resize(int len,int in1,int in2,int out1,int out2,int out3)
     output[0]=out1;
     output[1]=out2;
     output[2]=out3;
-    setFixedSize(length*150+150,length*150+150);
     double left = -100*length/2;
     double top = -100*length/2;
     for(int i=0;i<length-1;i++)
