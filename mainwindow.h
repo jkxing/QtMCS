@@ -28,8 +28,10 @@ private:
     int mp[10][10][10][10];
     bool needDel;
     void calcConcentration(vector<double> &res,double input1);
+    double calcLoss(double x,double y,double z,double a,double b,double c);
 public:
     explicit MainWindow(QWidget *parent = 0);
+    void predict(int length,double output1,double output2,double output3);
     ~MainWindow();
 
 private slots:
@@ -37,9 +39,7 @@ private slots:
     void resize(int,int,int,int,int,int);
     void on_pushButton_clicked();
     void EditPipe(int,int,int);
-
     void on_pushButton_2_clicked();
-
     void on_horizontalSlider_valueChanged(int value);
 
 private:

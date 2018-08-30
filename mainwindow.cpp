@@ -26,6 +26,8 @@ MainWindow::MainWindow(QWidget *parent) :
     length=5;
 
     setWindowTitle("MCS");
+
+    predict(5,200,100,100);
 }
 
 MainWindow::~MainWindow()
@@ -100,7 +102,108 @@ void MainWindow::resize(int len,int in1,int in2,int out1,int out2,int out3)
         connect(outpipe[i],SIGNAL(PipeEdit(int,int,int)),this,SLOT(EditPipe(int,int,int)));
     }
 }
+double MainWindow::calcLoss(double x,double y,double z,double a,double b,double c)
+{
+    if(isnan(x)||isnan(y)||isnan(z)) return 1000000000;
+    return (x-a)*(x-a)+(y-b)*(y-b)+(z-c)*(z-c);
+}
+void MainWindow::predict(int length,double output1,double output2,double output3)
+{
+    vector<double> len;
+    for(int i=0;i<2*length*length-2*length;i++)
+    {
+        int k=rand()%10;
+        if(k)
+            len.push_back(1);
+        else
+            len.push_back(0);
+    }
+    for(int i=0;i<5;i++)
+        len.push_back(1);
+    int siz = 2*length*(length-1)+5;
+    vector<double> res = calc.calc(length,len,0,1,0,1,2,200,200);
+    vector<double> bst = res;
+    double loss = calcLoss(res[siz-3],res[siz-2],res[siz-1],output1,output2,output3);
+    qDebug()<<loss<<endl;
+    for(int tim=0;tim<1000;tim++)
+    {
+        int k = rand()%(siz-5);
+        if(len[k]>0.5) len[k]=0;
+        else len[k]=1;
+        res = calc.calc(length,len,0,1,0,1,2,200,200);
+        double loss1 = calcLoss(res[siz-3],res[siz-2],res[siz-1],output1,output2,output3);
+        if(loss<loss1)
+        {
+            if(len[k]>0.5) len[k]=0;
+            else len[k]=1;
+        }
+        else
+        {
+            loss = loss1;
+            bst = res;
+        }
+    }
+    qDebug()<<loss<<endl;
 
+    double x=120;
+    double y=15;
+    double xpy=x+y;
+    setFixedSize(length*xpy+500,length*xpy+500);
+    //delete scene;
+    scene = new QGraphicsScene(this);
+    ui->graphicsView->setScene(scene);
+    double left = -x*length/2;
+    double top = -x*length/2;
+    int cnt=0;
+    for(int i=0;i<length;i++)
+    {
+        for(int j=0;j<length-1;j++)
+        {
+            pipe[1][i][j]=new Pipe(1,i,j,left+xpy*i,top+xpy*j+y,y,x,len[cnt]);
+            scene->addItem(pipe[1][i][j]);
+            connect(pipe[1][i][j],SIGNAL(PipeEdit(int,int,int)),this,SLOT(EditPipe(int,int,int)));
+            cnt++;
+        }
+    }
+    for(int i=0;i<length-1;i++)
+    {
+        for(int j=0;j<length;j++)
+        {
+            pipe[0][i][j]=new Pipe(0,i,j,left+xpy*i+y,top+xpy*j,x,y,len[cnt]);
+            scene->addItem(pipe[0][i][j]);
+            connect(pipe[0][i][j],SIGNAL(PipeEdit(int,int,int)),this,SLOT(EditPipe(int,int,int)));
+            cnt++;
+        }
+    }
+    for(int i=0;i<length;i++)
+    {
+        for(int j=0;j<length;j++)
+        {
+            pipe[2][i][j]=new Pipe(2,i,j,left+xpy*i,top+xpy*j,y,y,1);
+            scene->addItem(pipe[2][i][j]);
+        }
+    }
+    inpipe[0]=new Pipe(3,0,0,left+0*xpy,top-x,y,x,1);
+    inpipe[1]=new Pipe(3,0,1,left+1*xpy,top-x,y,x,1);
+    outpipe[0]=new Pipe(4,0,0,left+0*xpy,top+xpy*length-xpy+y,y,x,1);
+    outpipe[1]=new Pipe(4,0,1,left+1*xpy,top+xpy*length-xpy+y,y,x,1);
+    outpipe[2]=new Pipe(4,0,2,left+2*xpy,top+xpy*length-xpy+y,y,x,1);
+    for(int i=0;i<2;i++)
+    {
+        scene->addItem(inpipe[i]);
+        connect(inpipe[i],SIGNAL(PipeEdit(int,int,int)),this,SLOT(EditPipe(int,int,int)));
+    }
+    for(int i=0;i<3;i++)
+    {
+        scene->addItem(outpipe[i]);
+        connect(outpipe[i],SIGNAL(PipeEdit(int,int,int)),this,SLOT(EditPipe(int,int,int)));
+    }
+    ui->lineEdit->setText(QString::number(200));
+    ui->lineEdit_2->setText(QString::number(200));
+    ui->lineEdit_3->setText(QString::number(bst[siz-3]));
+    ui->lineEdit_4->setText(QString::number(bst[siz-2]));
+    ui->lineEdit_5->setText(QString::number(bst[siz-1]));
+}
 void MainWindow::calculate()
 {
     double input1 = ui->lineEdit->text().toDouble();
@@ -207,7 +310,6 @@ void MainWindow::on_pushButton_2_clicked()
         }
         else if(select_id==4)
         {
-            qDebug()<<"ok";
             outpipe[select_y]->changeWidth(wid);
             scene->removeItem(outpipe[select_y]);
             scene->addItem(outpipe[select_y]);

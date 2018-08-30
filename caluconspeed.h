@@ -421,8 +421,6 @@ void getans()
 //				分别表示两个输入管道与三个输出管道在第几列。
 vector<double> calc(int num, vector<double>&length, int i1, int i2, int o1, int o2, int o3,double v1,double v2)
 {
-    qDebug()<<v1;
-    qDebug()<<v2;
     inputspeed1=v1;
     inputspeed2=v2;
     rect.clear();
