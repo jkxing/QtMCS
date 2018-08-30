@@ -11,8 +11,7 @@ Pipe::Pipe(int pos,int _x,int _y,double x,double y,double w,double h,int c,QWidg
         inUse = c;
     }
     setFlag(ItemIsSelectable);
-    kuan=200;
-    chang=1600;
+    width=200;
     col = Qt::gray;
 }
 QRectF Pipe::boundingRect() const
@@ -24,7 +23,6 @@ void Pipe::paint(QPainter *painter,const QStyleOptionGraphicsItem *option
 {
     QRectF rec = boundingRect();
     QBrush brush(Qt::blue);
-
     if(inUse)
     {
         brush.setColor(col);
@@ -47,8 +45,14 @@ void Pipe::mousePressEvent(QGraphicsSceneMouseEvent* event){
     emit PipeEdit(pos,_x,_y);
     QGraphicsObject::mousePressEvent(event);
 }
-void Pipe::changeSpeed(double x){
-    x=fabs(x);
+void Pipe::changeSpeed(double x,double input){
+    speed=x;
+    if(fabs(speed)<1e-6)
+    {
+        col=Qt::gray;
+        return;
+    }
+    x=fabs(speed/input/getWidth());
     if(x<0.16)
         col = QColor(139-x/0.16*139,0,255);
     else if(x<0.33)
@@ -59,24 +63,14 @@ void Pipe::changeSpeed(double x){
         col = QColor((x-0.49)/0.17*255,255,0);
     else
         col = QColor(255,255-(((x>1)?1:x)-0.66)/0.34*255,0);
-    //setOpacity(x+0.1);
     update();
 }
 bool Pipe::getState(){
     return inUse;
 }
 
-double Pipe::getChang(){
-    return chang;
-}
-
-double Pipe::getKuan(){
-    return kuan/200;
-}
-
-void Pipe::setSpeed(double x)
-{
-    speed = x;
+double Pipe::getWidth(){
+    return width/200;
 }
 
 double Pipe::getSpeed()
@@ -85,31 +79,31 @@ double Pipe::getSpeed()
 }
 
 void Pipe::changeWidth(double t){
-    double k=(t-kuan)*(15.0/200);
+    double k=(t-width)*(15.0/200);
     if(pos==0)
     {
         y-=k/2;
         h+=k;
-        kuan=t;
+        width=t;
         update();
     }
     else
     {
         x-=k/2;
         w+=k;
-        kuan=t;
+        width=t;
         update();
     }
 }
 
-void Pipe::changeNongDu(double x)
+void Pipe::changeConcentration(double x)
 {
-    if(fabs(getSpeed())<0.00001) nongdu=0;
-    else nongdu=fabs(x/getKuan()/getSpeed());
-    setOpacity(0.2+nongdu*0.8);
+    if(fabs(getSpeed())<0.00001) concentration=0;
+    else concentration=fabs(x/getSpeed());
+    setOpacity(0.2+concentration*0.8);
     update();
 }
 
-double Pipe::getNongDu(){
-    return nongdu;
+double Pipe::getConcentration(){
+    return concentration;
 }

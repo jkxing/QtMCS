@@ -12,11 +12,11 @@ class Pipe: public QGraphicsObject
     Q_OBJECT
     bool inUse;
     double x,y,w,h;
-    double chang,kuan;
+    double width;
     double speed;
     int pos,_x,_y;
     QColor col;
-    double nongdu;
+    double concentration;
 public:
     Pipe(int pos,int _x,int _y,double x,double y,double w,double h,int c,QWidget* parent=0);
 
@@ -26,14 +26,12 @@ public:
 , QWidget *widget);
 
     bool getState();
-    double getChang();
-    double getKuan();
-    void setSpeed(double x);
+    double getWidth();
     double getSpeed();
-    void changeSpeed(double x);
+    void changeSpeed(double x,double input);
     void changeWidth(double x);
-    void changeNongDu(double x);
-    double getNongDu();
+    void changeConcentration(double x);
+    double getConcentration();
 signals:
     void PipeEdit(int,int,int);
 protected:

@@ -26,6 +26,8 @@ private:
     double val[10][10];
     int qx[100],qy[100];
     int mp[10][10][10][10];
+    bool needDel;
+    void calcConcentration(vector<double> &res,double input1);
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -37,6 +39,8 @@ private slots:
     void EditPipe(int,int,int);
 
     void on_pushButton_2_clicked();
+
+    void on_horizontalSlider_valueChanged(int value);
 
 private:
     Ui::MainWindow *ui;

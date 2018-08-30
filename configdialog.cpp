@@ -1,6 +1,6 @@
 #include "configdialog.h"
 #include "ui_configdialog.h"
-
+#include <QMessageBox>
 ConfigDialog::ConfigDialog(int len,int in1,int in2,int out1,int out2,int out3, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ConfigDialog)
@@ -29,6 +29,7 @@ ConfigDialog::ConfigDialog(int len,int in1,int in2,int out1,int out2,int out3, Q
     ui->Output1->setCurrentText(QString::number(out1));
     ui->Output2->setCurrentText(QString::number(out2));
     ui->Output3->setCurrentText(QString::number(out3));
+    setWindowTitle("Config Graph");
 }
 
 ConfigDialog::~ConfigDialog()
@@ -64,13 +65,18 @@ void ConfigDialog::on_length_currentTextChanged(const QString &arg1)
 void ConfigDialog::work(){
     if(this->exec()==QDialog::Accepted)
     {
-        emit finish(ui->length->currentText().toInt(),
-                    ui->Input1->currentText().toInt(),
-                    ui->Input2->currentText().toInt(),
-                    ui->Output1->currentText().toInt(),
-                    ui->Output2->currentText().toInt(),
-                    ui->Output3->currentText().toInt()
-                    );
+        int in1 = ui->Input1->currentText().toInt();
+        int in2 = ui->Input2->currentText().toInt();
+        int out1= ui->Output1->currentText().toInt();
+        int out2= ui->Output2->currentText().toInt();
+        int out3= ui->Output3->currentText().toInt();
+        if(in1>=in2||out1>=out2||out2>=out3)
+        {
+            QMessageBox::warning(this,"Warning","Illegal argument");
+            work();
+            return;
+        }
+        emit finish(ui->length->currentText().toInt(),in1,in2,out1,out2,out3);
     }
     else
     {
