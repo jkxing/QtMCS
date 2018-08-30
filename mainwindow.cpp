@@ -144,7 +144,6 @@ void MainWindow::predict(int length,double output1,double output2,double output3
         }
     }
     qDebug()<<loss<<endl;
-
     double x=120;
     double y=15;
     double xpy=x+y;
