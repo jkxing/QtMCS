@@ -100,8 +100,6 @@ void MainWindow::resize(int len,int in1,int in2,int out1,int out2,int out3)
         scene->addItem(outpipe[i]);
         connect(outpipe[i],SIGNAL(PipeEdit(int,int,int)),this,SLOT(EditPipe(int,int,int)));
     }
-    inpipe[0]->changeConcentration(inpipe[0]->getSpeed());
-    inpipe[1]->changeConcentration(0);
 }
 double MainWindow::calcLoss(double x,double y,double z,double a,double b,double c)
 {
@@ -220,7 +218,7 @@ void MainWindow::calculate()
         for(int j=0;j<length-1;j++)
         {
             if(pipe[1][i][j]->getState())
-                len.push_back(1);
+                len.push_back(pipe[1][i][j]->getWidth());
             else
                 len.push_back(0);
         }
@@ -228,14 +226,14 @@ void MainWindow::calculate()
         for(int j=0;j<length;j++)
         {
             if(pipe[0][i][j]->getState())
-                len.push_back(1);
+                len.push_back(pipe[0][i][j]->getWidth());
             else
                 len.push_back(0);
         }
     for(int i=0;i<2;i++)
         len.push_back(inpipe[i]->getWidth());
     for(int i=0;i<3;i++)
-        len.push_back(1);
+        len.push_back(outpipe[i]->getWidth());
     vector<double> res = calc.calc(length,len,input[0],input[1],output[0],output[1],output[2],input1,input2);
     int siz = res.size();
     ui->lineEdit_3->setText(QString::number(res[siz-3]));
@@ -265,6 +263,8 @@ void MainWindow::calculate()
     outpipe[0]->changeSpeed(res[siz-3],(input1+input2));
     outpipe[1]->changeSpeed(res[siz-2],(input1+input2));
     outpipe[2]->changeSpeed(res[siz-1],(input1+input2));
+    inpipe[0]->changeConcentration(inpipe[0]->getSpeed());
+    inpipe[1]->changeConcentration(0);
     calcConcentration(res,input1);
 }
 void MainWindow::EditPipe(int id,int x,int y)
@@ -450,7 +450,6 @@ void MainWindow::calcConcentration(vector<double>& res,double input1)
         if(flag[0][x][y]&&flag[1][x][y])
         {
             Pipe *tin1,*tout1,*tin2,*tout2;
-            qDebug()<<x<<" *** "<<y;
             if(flag[0][x][y]==1)
             {
                 if(y==0)
@@ -490,44 +489,44 @@ void MainWindow::calcConcentration(vector<double>& res,double input1)
             }
             if(fabs(tin1->getSpeed())>fabs(tout2->getSpeed()))
             {
+                qDebug()<<x<<" "<<y<<" "<<val[x][y]<<" "<<val[x][y]-fabs(tin1->getConcentration()*tout2->getSpeed());
                 spe = 1;
-                qDebug()<<"here "<<tin1->getSpeed()<<" "<<tin1->getConcentration()<<" "<<(tin1->getConcentration()*fabs(tout2->getSpeed()));
                 tout2->changeConcentration((tin1->getConcentration()*fabs(tout2->getSpeed())));
                 tout1->changeConcentration((val[x][y]-fabs(tin1->getConcentration()*tout2->getSpeed())));
-                if(tout1->getid()==0)
-                {
-                    if(tout1->getSpeed()>0.000001)
-                        val[tout1->getX()+1][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
-                    else
-                        val[tout1->getX()][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
-                }
-                else if(tout1->getid()==1)
+                if(tout1->getid()<2)
                 {
                     if(tout1->getSpeed()>0.000001)
                         val[tout1->getX()][tout1->getY()+1]+=fabs(tout1->getSpeed()*tout1->getConcentration());
                     else
                         val[tout1->getX()][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                }
+                if(tout2->getid()<2)
+                {
+                    if(tout2->getSpeed()>0.000001)
+                        val[tout2->getX()+1][tout2->getY()]+=fabs(tout2->getSpeed()*tout2->getConcentration());
+                    else
+                        val[tout2->getX()][tout2->getY()]+=fabs(tout2->getSpeed()*tout2->getConcentration());
                 }
             }
             else if(fabs(tin2->getSpeed())>fabs(tout1->getSpeed()))
             {
                 spe = 1;
                 tout1->changeConcentration(tin2->getConcentration()*fabs(tout1->getSpeed()));
-                qDebug()<<val[x][y]<<" "<<tin2->getConcentration()*fabs(tout1->getSpeed());
                 tout2->changeConcentration((val[x][y]-tin2->getConcentration()*fabs(tout1->getSpeed())));
-                if(tout1->getid()==0)
-                {
-                    if(tout1->getSpeed()>0.000001)
-                        val[tout1->getX()+1][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
-                    else
-                        val[tout1->getX()][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
-                }
-                else if(tout1->getid()==1)
+
+                if(tout1->getid()<2)
                 {
                     if(tout1->getSpeed()>0.000001)
                         val[tout1->getX()][tout1->getY()+1]+=fabs(tout1->getSpeed()*tout1->getConcentration());
                     else
                         val[tout1->getX()][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                }
+                if(tout2->getid()<2)
+                {
+                    if(tout2->getSpeed()>0.000001)
+                        val[tout2->getX()+1][tout2->getY()]+=fabs(tout2->getSpeed()*tout2->getConcentration());
+                    else
+                        val[tout2->getX()][tout2->getY()]+=fabs(tout2->getSpeed()*tout2->getConcentration());
                 }
             }
         }
@@ -590,9 +589,12 @@ void MainWindow::calcConcentration(vector<double>& res,double input1)
         }
         if(y==length-1)
         {
-            for(int i=0;i<3;i++)
-                if(x==output[i])
-                    outpipe[i]->changeConcentration(val[x][y]*outpipe[i]->getSpeed()/k);
+            if(!spe)
+            {
+                for(int i=0;i<3;i++)
+                    if(x==output[i])
+                        outpipe[i]->changeConcentration(val[x][y]*outpipe[i]->getSpeed()/k);
+            }
         }
     }
 }

@@ -52,7 +52,7 @@ void Pipe::changeSpeed(double x,double input){
         col=Qt::gray;
         return;
     }
-    x=fabs(speed/input/getWidth())*2;
+    x=fabs(speed/input)*2;
     if(x<0.16)
         col = QColor(139-x/0.16*139,0,255);
     else if(x<0.33)

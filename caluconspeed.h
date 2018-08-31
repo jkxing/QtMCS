@@ -244,9 +244,9 @@ void initrect(){
         {
             number++;
             if (edges[nodes[i].elist[j]].n1 == i)
-                tmp[nodes[i].elist[j]] = edges[nodes[i].elist[j]].leng;
+                tmp[nodes[i].elist[j]] = 1;
             else
-                tmp[nodes[i].elist[j]] = -edges[nodes[i].elist[j]].leng;
+                tmp[nodes[i].elist[j]] = -1;
         }
         tmp[EDGESUM] = 0;
         if (number>0)
