@@ -4,7 +4,7 @@ Pipe::Pipe(int pos,int _x,int _y,double x,double y,double w,double h,int c,QWidg
 {
     if(c==-1)
     {
-        inUse = rand()%10?1:0;
+        inUse = 1;
     }
     else
     {
@@ -52,7 +52,7 @@ void Pipe::changeSpeed(double x,double input){
         col=Qt::gray;
         return;
     }
-    x=fabs(speed/input/getWidth());
+    x=fabs(speed/input/getWidth())*2;
     if(x<0.16)
         col = QColor(139-x/0.16*139,0,255);
     else if(x<0.33)
@@ -79,7 +79,7 @@ double Pipe::getSpeed()
 }
 
 void Pipe::changeWidth(double t){
-    double k=(t-width)*(15.0/200);
+    double k=(t-width)*(10.0/200);
     if(pos==0)
     {
         y-=k/2;
@@ -98,7 +98,8 @@ void Pipe::changeWidth(double t){
 
 void Pipe::changeConcentration(double x)
 {
-    if(fabs(getSpeed())<0.00001) concentration=0;
+    if(fabs(x)<0.000001) concentration=0;
+    else if(fabs(getSpeed())<0.00001) concentration=0;
     else concentration=fabs(x/getSpeed());
     setOpacity(0.2+concentration*0.8);
     update();
@@ -106,4 +107,14 @@ void Pipe::changeConcentration(double x)
 
 double Pipe::getConcentration(){
     return concentration;
+}
+
+int Pipe::getid(){
+    return pos;
+}
+int Pipe::getX(){
+    return _x;
+}
+int Pipe::getY(){
+    return _y;
 }

@@ -3,6 +3,7 @@
 #include <configdialog.h>
 #include <QDebug>
 #include <predictdialog.h>
+#include <QMessageBox>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -17,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEdit_4->setEnabled(0);
     ui->lineEdit_5->setEnabled(0);
     ui->horizontalSlider->setMinimum(20);
-    ui->horizontalSlider->setMaximum(1000);
+    ui->horizontalSlider->setMaximum(2000);
     setFixedSize(800,600);
     input[0]=0;
     input[1]=1;
@@ -99,6 +100,8 @@ void MainWindow::resize(int len,int in1,int in2,int out1,int out2,int out3)
         scene->addItem(outpipe[i]);
         connect(outpipe[i],SIGNAL(PipeEdit(int,int,int)),this,SLOT(EditPipe(int,int,int)));
     }
+    inpipe[0]->changeConcentration(inpipe[0]->getSpeed());
+    inpipe[1]->changeConcentration(0);
 }
 double MainWindow::calcLoss(double x,double y,double z,double a,double b,double c)
 {
@@ -153,7 +156,7 @@ void MainWindow::predict(int _length,double output1,double output2,double output
     double x=80;
     double y=10;
     double xpy=x+y;
-    setFixedSize(length*xpy+500,length*xpy+500);
+    setFixedSize(length*xpy+300,length*xpy+300);
     //delete scene;
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
@@ -319,6 +322,26 @@ void MainWindow::on_pushButton_2_clicked()
         }
         else
         {
+            bool can = 1;
+            if(select_id==1)
+            {
+                if(select_x>0&&wid+pipe[1][select_x-1][select_y]->getWidth()*200>3200)
+                    can=0;
+                if(select_x<length-1&&wid+pipe[1][select_x+1][select_y]->getWidth()*200>3200)
+                    can=0;
+            }
+            else
+            {
+                if(select_y>0&&wid+pipe[0][select_x][select_y-1]->getWidth()*200>3200)
+                    can=0;
+                if(select_y<length-1&&wid+pipe[0][select_x][select_y+1]->getWidth()*200>3200)
+                    can=0;
+            }
+            if(!can)
+            {
+                QMessageBox::warning(this,"Warning","Too narrow between pipes");
+                return;
+            }
             pipe[select_id][select_x][select_y]->changeWidth(wid);
             scene->removeItem(pipe[select_id][select_x][select_y]);
             scene->addItem(pipe[select_id][select_x][select_y]);
@@ -364,6 +387,30 @@ void MainWindow::calcConcentration(vector<double>& res,double input1)
             pipe[0][i][j]->changeConcentration(0);
             cnt++;
         }
+    memset(flag,0,sizeof(flag));
+    for(int i=1;i<length-1;i++)
+        for(int j=0;j<length;j++)
+        {
+            if(j==0)
+            {
+                if((i==input[0]||i==input[1])&&mp[i][j][i][j+1]) flag[0][i][j]=1;
+            }
+            else if(j==length-1)
+            {
+                if((i==output[0]||i==output[1]||i==output[2])&&mp[i][j-1][i][j]) flag[0][i][j]=1;
+            }
+            else
+            {
+                if(mp[i][j][i][j+1]*mp[i][j-1][i][j]) flag[0][i][j]=1;
+                if(mp[i][j][i][j-1]*mp[i][j+1][i][j]) flag[0][i][j]=2;
+            }
+            if(mp[i][j][i+1][j]*mp[i-1][j][i][j]) flag[1][i][j]=1;
+            if(mp[i][j][i-1][j]*mp[i+1][j][i][j]) flag[1][i][j]=2;
+            if(flag[i][j])
+            {
+                qDebug()<<i<<" "<<j;
+            }
+        }
     memset(val,0,sizeof(val));
     val[input[0]][0]=inpipe[0]->getWidth()*input1;
     front=1;tail=0;
@@ -399,49 +446,147 @@ void MainWindow::calcConcentration(vector<double>& res,double input1)
                 if(x==output[i])
                     k+=outpipe[i]->getSpeed();
         }
+        bool spe=0;
+        if(flag[0][x][y]&&flag[1][x][y])
+        {
+            Pipe *tin1,*tout1,*tin2,*tout2;
+            qDebug()<<x<<" *** "<<y;
+            if(flag[0][x][y]==1)
+            {
+                if(y==0)
+                {
+                    if(x==input[0])
+                        tin1 = inpipe[0];
+                    else tin1 = inpipe[1];
+                    tout1 = pipe[1][x][y];
+                }
+                else if(y==length-1)
+                {
+                    tin1 = pipe[1][x][y-1];
+                    for(int i=0;i<3;i++)
+                        if(x==output[i])
+                            tout1 = outpipe[i];
+                }
+                else
+                {
+                    tin1 = pipe[1][x][y-1];
+                    tout1 = pipe[1][x][y];
+                }
+            }
+            else
+            {
+                tin1 = pipe[1][x][y];
+                tout1 = pipe[1][x][y-1];
+            }
+            if(flag[1][x][y]==1)
+            {
+                tin2 = pipe[0][x-1][y];
+                tout2 = pipe[0][x][y];
+            }
+            else
+            {
+                tin2 = pipe[0][x][y];
+                tout2 = pipe[0][x-1][y];
+            }
+            if(fabs(tin1->getSpeed())>fabs(tout2->getSpeed()))
+            {
+                spe = 1;
+                qDebug()<<"here "<<tin1->getSpeed()<<" "<<tin1->getConcentration()<<" "<<(tin1->getConcentration()*fabs(tout2->getSpeed()));
+                tout2->changeConcentration((tin1->getConcentration()*fabs(tout2->getSpeed())));
+                tout1->changeConcentration((val[x][y]-fabs(tin1->getConcentration()*tout2->getSpeed())));
+                if(tout1->getid()==0)
+                {
+                    if(tout1->getSpeed()>0.000001)
+                        val[tout1->getX()+1][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                    else
+                        val[tout1->getX()][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                }
+                else if(tout1->getid()==1)
+                {
+                    if(tout1->getSpeed()>0.000001)
+                        val[tout1->getX()][tout1->getY()+1]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                    else
+                        val[tout1->getX()][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                }
+            }
+            else if(fabs(tin2->getSpeed())>fabs(tout1->getSpeed()))
+            {
+                spe = 1;
+                tout1->changeConcentration(tin2->getConcentration()*fabs(tout1->getSpeed()));
+                qDebug()<<val[x][y]<<" "<<tin2->getConcentration()*fabs(tout1->getSpeed());
+                tout2->changeConcentration((val[x][y]-tin2->getConcentration()*fabs(tout1->getSpeed())));
+                if(tout1->getid()==0)
+                {
+                    if(tout1->getSpeed()>0.000001)
+                        val[tout1->getX()+1][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                    else
+                        val[tout1->getX()][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                }
+                else if(tout1->getid()==1)
+                {
+                    if(tout1->getSpeed()>0.000001)
+                        val[tout1->getX()][tout1->getY()+1]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                    else
+                        val[tout1->getX()][tout1->getY()]+=fabs(tout1->getSpeed()*tout1->getConcentration());
+                }
+            }
+        }
         if(mp[x][y][x+1][y])
         {
-            if(--deg[x+1][y]==0)
+            if((--deg[x+1][y])==0)
             {
                 tail++;
                 qx[tail]=x+1;
                 qy[tail]=y;
             }
-            pipe[0][x][y]->changeConcentration(val[x][y]*pipe[0][x][y]->getSpeed()/k);
-            val[x+1][y]+=val[x][y]*pipe[0][x][y]->getSpeed()/k;
+            if(!spe)
+            {
+                pipe[0][x][y]->changeConcentration(val[x][y]*pipe[0][x][y]->getSpeed()/k);
+                val[x+1][y]+=val[x][y]*pipe[0][x][y]->getSpeed()/k;
+            }
         }
         if(mp[x][y][x-1][y])
         {
-            if(--deg[x-1][y]==0)
+            if((--deg[x-1][y])==0)
             {
                 tail++;
                 qx[tail]=x-1;
                 qy[tail]=y;
             }
-            pipe[0][x-1][y]->changeConcentration(val[x][y]*-1*pipe[0][x-1][y]->getSpeed()/k);
-            val[x-1][y]+=val[x][y]*-pipe[0][x-1][y]->getSpeed()/k;
+            if(!spe)
+            {
+                pipe[0][x-1][y]->changeConcentration(val[x][y]*-1*pipe[0][x-1][y]->getSpeed()/k);
+                val[x-1][y]+=val[x][y]*-pipe[0][x-1][y]->getSpeed()/k;
+
+            }
         }
         if(mp[x][y][x][y+1])
         {
-            if(--deg[x][y+1]==0)
+            if((--deg[x][y+1])==0)
             {
                 tail++;
                 qx[tail]=x;
                 qy[tail]=y+1;
             }
-            pipe[1][x][y]->changeConcentration(val[x][y]*pipe[1][x][y]->getSpeed()/k);
-            val[x][y+1]+=val[x][y]*pipe[1][x][y]->getSpeed()/k;
+            if(!spe)
+            {
+                pipe[1][x][y]->changeConcentration(val[x][y]*pipe[1][x][y]->getSpeed()/k);
+                val[x][y+1]+=val[x][y]*pipe[1][x][y]->getSpeed()/k;
+            }
         }
         if(mp[x][y][x][y-1])
         {
-            if(--deg[x][y-1]==0)
+            if((--deg[x][y-1])==0)
             {
                 tail++;
                 qx[tail]=x;
                 qy[tail]=y-1;
             }
-            pipe[1][x][y-1]->changeConcentration(val[x][y]*-pipe[1][x][y-1]->getSpeed()/k);
-            val[x][y-1]+=val[x][y]*-pipe[1][x][y-1]->getSpeed()/k;
+            if(!spe)
+            {
+                pipe[1][x][y-1]->changeConcentration(val[x][y]*-pipe[1][x][y-1]->getSpeed()/k);
+                val[x][y-1]+=val[x][y]*-pipe[1][x][y-1]->getSpeed()/k;
+            }
         }
         if(y==length-1)
         {
@@ -450,8 +595,6 @@ void MainWindow::calcConcentration(vector<double>& res,double input1)
                     outpipe[i]->changeConcentration(val[x][y]*outpipe[i]->getSpeed()/k);
         }
     }
-    inpipe[0]->changeConcentration(inpipe[0]->getSpeed());
-    inpipe[1]->changeConcentration(0);
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)

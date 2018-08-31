@@ -32,6 +32,9 @@ public:
     void changeWidth(double x);
     void changeConcentration(double x);
     double getConcentration();
+    int getid();
+    int getX();
+    int getY();
 signals:
     void PipeEdit(int,int,int);
 protected:

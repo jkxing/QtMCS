@@ -26,6 +26,7 @@ private:
     double val[10][10];
     int qx[100],qy[100];
     int mp[10][10][10][10];
+    int flag[2][10][10];
     bool needDel;
     void calcConcentration(vector<double> &res,double input1);
     double calcLoss(double x,double y,double z,double a,double b,double c);
