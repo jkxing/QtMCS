@@ -150,7 +150,7 @@
      <x>0</x>
      <y>0</y>
      <width>677</width>
-     <height>17</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
@@ -158,6 +158,7 @@
      <string>Menu</string>
     </property>
     <addaction name="actionConfig"/>
+    <addaction name="actionPredict"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
@@ -168,6 +169,11 @@
    </property>
    <property name="toolTip">
     <string>Config chip size and pipe position</string>
+   </property>
+  </action>
+  <action name="actionPredict">
+   <property name="text">
+    <string>Predict</string>
    </property>
   </action>
  </widget>

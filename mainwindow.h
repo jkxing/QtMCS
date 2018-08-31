@@ -31,7 +31,6 @@ private:
     double calcLoss(double x,double y,double z,double a,double b,double c);
 public:
     explicit MainWindow(QWidget *parent = 0);
-    void predict(int length,double output1,double output2,double output3);
     ~MainWindow();
 
 private slots:
@@ -41,6 +40,8 @@ private slots:
     void EditPipe(int,int,int);
     void on_pushButton_2_clicked();
     void on_horizontalSlider_valueChanged(int value);
+    void predict(int length,double output1,double output2,double output3,int in1,int in2,int out1,int out2,int out3);
+    void on_actionPredict_triggered();
 
 private:
     Ui::MainWindow *ui;

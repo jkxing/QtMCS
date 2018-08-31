@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <configdialog.h>
 #include <QDebug>
+#include <predictdialog.h>
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -24,10 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     output[1]=1;
     output[2]=2;
     length=5;
-
     setWindowTitle("MCS");
-
-    predict(5,200,100,100);
 }
 
 MainWindow::~MainWindow()
@@ -51,10 +49,10 @@ void MainWindow::resize(int len,int in1,int in2,int out1,int out2,int out3)
     output[0]=out1;
     output[1]=out2;
     output[2]=out3;
-    double x=120;
-    double y=15;
+    double x=80;
+    double y=10;
     double xpy=x+y;
-    setFixedSize(length*xpy+500,length*xpy+500);
+    setFixedSize(length*xpy+300,length*xpy+300);
     //delete scene;
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
@@ -107,8 +105,15 @@ double MainWindow::calcLoss(double x,double y,double z,double a,double b,double 
     if(isnan(x)||isnan(y)||isnan(z)) return 1000000000;
     return (x-a)*(x-a)+(y-b)*(y-b)+(z-c)*(z-c);
 }
-void MainWindow::predict(int length,double output1,double output2,double output3)
+void MainWindow::predict(int _length,double output1,double output2,double output3,int in1,int in2,int out1,int out2,int out3)
 {
+    if(_length==0) return;
+    length = _length;
+    input[0]=in1;
+    input[1]=in2;
+    output[0]=out1;
+    output[1]=out2;
+    output[2]=out3;
     vector<double> len;
     for(int i=0;i<2*length*length-2*length;i++)
     {
@@ -121,7 +126,8 @@ void MainWindow::predict(int length,double output1,double output2,double output3
     for(int i=0;i<5;i++)
         len.push_back(1);
     int siz = 2*length*(length-1)+5;
-    vector<double> res = calc.calc(length,len,0,1,0,1,2,200,200);
+    double inflow = (output1+output2+output3)/2;
+    vector<double> res = calc.calc(length,len,in1,in2,out1,out2,out3,inflow,inflow);
     vector<double> bst = res;
     double loss = calcLoss(res[siz-3],res[siz-2],res[siz-1],output1,output2,output3);
     qDebug()<<loss<<endl;
@@ -130,7 +136,7 @@ void MainWindow::predict(int length,double output1,double output2,double output3
         int k = rand()%(siz-5);
         if(len[k]>0.5) len[k]=0;
         else len[k]=1;
-        res = calc.calc(length,len,0,1,0,1,2,200,200);
+        res = calc.calc(length,len,in1,in2,out1,out2,out3,inflow,inflow);
         double loss1 = calcLoss(res[siz-3],res[siz-2],res[siz-1],output1,output2,output3);
         if(loss<loss1)
         {
@@ -144,8 +150,8 @@ void MainWindow::predict(int length,double output1,double output2,double output3
         }
     }
     qDebug()<<loss<<endl;
-    double x=120;
-    double y=15;
+    double x=80;
+    double y=10;
     double xpy=x+y;
     setFixedSize(length*xpy+500,length*xpy+500);
     //delete scene;
@@ -182,11 +188,11 @@ void MainWindow::predict(int length,double output1,double output2,double output3
             scene->addItem(pipe[2][i][j]);
         }
     }
-    inpipe[0]=new Pipe(3,0,0,left+0*xpy,top-x,y,x,1);
-    inpipe[1]=new Pipe(3,0,1,left+1*xpy,top-x,y,x,1);
-    outpipe[0]=new Pipe(4,0,0,left+0*xpy,top+xpy*length-xpy+y,y,x,1);
-    outpipe[1]=new Pipe(4,0,1,left+1*xpy,top+xpy*length-xpy+y,y,x,1);
-    outpipe[2]=new Pipe(4,0,2,left+2*xpy,top+xpy*length-xpy+y,y,x,1);
+    inpipe[0]=new Pipe(3,0,0,left+in1*xpy,top-x,y,x,1);
+    inpipe[1]=new Pipe(3,0,1,left+in2*xpy,top-x,y,x,1);
+    outpipe[0]=new Pipe(4,0,0,left+out1*xpy,top+xpy*length-xpy+y,y,x,1);
+    outpipe[1]=new Pipe(4,0,1,left+out2*xpy,top+xpy*length-xpy+y,y,x,1);
+    outpipe[2]=new Pipe(4,0,2,left+out3*xpy,top+xpy*length-xpy+y,y,x,1);
     for(int i=0;i<2;i++)
     {
         scene->addItem(inpipe[i]);
@@ -197,11 +203,9 @@ void MainWindow::predict(int length,double output1,double output2,double output3
         scene->addItem(outpipe[i]);
         connect(outpipe[i],SIGNAL(PipeEdit(int,int,int)),this,SLOT(EditPipe(int,int,int)));
     }
-    ui->lineEdit->setText(QString::number(200));
-    ui->lineEdit_2->setText(QString::number(200));
-    ui->lineEdit_3->setText(QString::number(bst[siz-3]));
-    ui->lineEdit_4->setText(QString::number(bst[siz-2]));
-    ui->lineEdit_5->setText(QString::number(bst[siz-1]));
+    ui->lineEdit->setText(QString::number(inflow));
+    ui->lineEdit_2->setText(QString::number(inflow));
+    calculate();
 }
 void MainWindow::calculate()
 {
@@ -453,4 +457,11 @@ void MainWindow::calcConcentration(vector<double>& res,double input1)
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
     ui->pushButton_2->setText(QString::number(value)+"(click to modify)");
+}
+
+void MainWindow::on_actionPredict_triggered()
+{
+    PredictDialog pd(this);
+    connect(&pd,SIGNAL(finish(int,double,double,double,int,int,int,int,int)),this,SLOT(predict(int,double,double,double,int,int,int,int,int)));
+    pd.work();
 }
