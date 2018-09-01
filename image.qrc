@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/image">
+        <file alias="ico">cblyb-x8v2r-001.ico</file>
+    </qresource>
+</RCC>

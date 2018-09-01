@@ -42,3 +42,6 @@ FORMS += \
         mainwindow.ui \
     configdialog.ui \
     predictdialog.ui
+
+RESOURCES += \
+    image.qrc

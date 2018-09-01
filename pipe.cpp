@@ -4,7 +4,7 @@ Pipe::Pipe(int pos,int _x,int _y,double x,double y,double w,double h,int c,QWidg
 {
     if(c==-1)
     {
-        inUse = 1;
+        inUse = rand()%10?1:0;
     }
     else
     {

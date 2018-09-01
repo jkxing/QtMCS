@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEdit_5->setEnabled(0);
     ui->horizontalSlider->setMinimum(20);
     ui->horizontalSlider->setMaximum(2000);
+    setWindowIcon(QIcon(":/image/ico"));
     setFixedSize(800,600);
     input[0]=0;
     input[1]=1;
@@ -53,7 +54,7 @@ void MainWindow::resize(int len,int in1,int in2,int out1,int out2,int out3)
     double x=80;
     double y=10;
     double xpy=x+y;
-    setFixedSize(length*xpy+300,length*xpy+300);
+    setFixedSize(length*xpy+250,length*xpy+250);
     //delete scene;
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
@@ -154,7 +155,7 @@ void MainWindow::predict(int _length,double output1,double output2,double output
     double x=80;
     double y=10;
     double xpy=x+y;
-    setFixedSize(length*xpy+300,length*xpy+300);
+    setFixedSize(length*xpy+250,length*xpy+250);
     //delete scene;
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
